@@ -1,186 +1,147 @@
-#include <TinyGPSPlus.h>
-#include <SoftwareSerial.h>
-#include <TM1637Display.h>
+
+// Include the header file for the functions
+#include "functions.h"
 
 
-/*
-   This sample code demonstrates the normal use of a TinyGPSPlus (TinyGPSPlus) object.
-   It requires the use of SoftwareSerial, and assumes that you have a
-   4800-baud serial GPS device hooked up on pins 4(rx) and 3(tx).
-*/
+#include <TimeLib.h>
+
+// Define the pins for the GPS module
 static const int RXPin = 4, TXPin = 3;
 static const uint32_t GPSBaud = 9600;
 
-// Définir les broches pour les module TM1637
+// Define the pins for the TM1637 display
 const int CLK = 5; 
 const int DIO1 = 6; 
 const int DIO2 = 7; 
+const int DIO3 = 8; 
 
-// The TinyGPSPlus object
+// Create an instance of the TinyGPSPlus class
 TinyGPSPlus gps;
 
-
-// Créer une instance de la classe TM1637Display
+// Create instances of the TM1637Display class
 TM1637Display display1(CLK, DIO1);
 TM1637Display display2(CLK, DIO2);
+TM1637Display display3(CLK, DIO3);
 
-// The serial connection to the GPS device
+// Create a serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
 
 void setup()
 {
+  // Begin the serial communication
   Serial.begin(115200);
   ss.begin(GPSBaud);
 
-  Serial.println(F("GPS By Thomas & Romu"));
-
-
-  // Initialiser l'afficheur
+  // Initialize the display and set the brightness
   display1.setBrightness(7); // Réglez la luminosité (0-7)
   display2.setBrightness(7); // Réglez la luminosité (0-7)
+  display3.setBrightness(7); // Réglez la luminosité (0-7)
+
+  // Print a startup message
+  Serial.println(F("Cruising the sea, With GPS you foresee"));
+  defilerMessage(display1, "Cruising the sea, With GPS you foresee", 5);
 
 
 }
 
 void loop()
 {
-  static const double LONDON_LAT = 51.508131, LONDON_LON = -0.128002;
 
-  printDateTime(gps.date, gps.time);
-  
-  printFloat(gps.course.deg(), gps.course.isValid(), 7, 2);
-  printFloat(gps.speed.kmph(), gps.speed.isValid(), 6, 2);
+  /*
+    Time display -------------------------------------------------------------------
+  */
 
-
+  // Get the current hours and minutes
   int hours = gps.time.hour();
   int minutes = gps.time.minute();
-  
-  int hourmin = hours * 100 + minutes;
 
-  // Afficher les minutes sur le premier afficheur
-  display1.showNumberDecEx(hourmin, 0b11000000, true);  // MM
+  // Adjust for timezone (Paris is UTC +1)
+  hours = hours + 1;
 
-  display2.showNumberDecEx(gps.speed.kmph() / 1.852 * 100, 0b11000000, false);  // MM
+  // Adjust for daylight saving time
+  if ((month() > 3 && month() < 10) || (month() == 3 && day() >= 26) || (month() == 10 && day() < 29)) {
+    hours = hours + 1;
+  }
+
+  // Handle overflow
+  if (hours >= 24) {
+    hours = hours - 24;
+  }
+
+  // Format the hours and minutes for a more attractive display
+  char timeStr[6];
+  sprintf(timeStr, "%02d:%02d", hours, minutes);
+
+  // Display the time on the display
+  display1.showNumberDecEx(atoi(timeStr), 0b11100000, true);
+
+  /*
+  Speed display -------------------------------------------------------------------
+  */
+
+  // Get the current speed in km/h
+  float speedKmph = gps.speed.kmph();
+
+  // Convert the speed to knots
+  float speedKnots = speedKmph / 1.852;
+
+  // Convert the speed to an integer for display
+  int intSpeed = (int)speedKnots;
+
+  // Get the decimal part of the speed
+  int decSpeed = (int)((speedKnots - intSpeed) * 10);
+
+  // Combine the integer and decimal parts for display
+  int displaySpeed = intSpeed * 10 + decSpeed;
+
+  // Display the speed on the second display
+  display2.showNumberDec(displaySpeed, true, 4, 0);
+
+  /*
+  Curse display -------------------------------------------------------------------
+  */
+
+  // Get the current course
+  float course = gps.course.deg();
+
+  // Convert the course to an integer for display
+  int intCourse = (int)course;
+
+  // Get the decimal part of the course
+  int decCourse = (int)((course - intCourse) * 10);
+
+  // Combine the integer and decimal parts for display
+  int displayCourse = intCourse * 10 + decCourse;
+
+  // Display the course on the third display
+  display3.showNumberDec(displayCourse, true, 4, 0);
 
 
 
 
 
-
-
-
-  
-
-  unsigned long distanceKmToLondon =
-    (unsigned long)TinyGPSPlus::distanceBetween(
-      gps.location.lat(),
-      gps.location.lng(),
-      LONDON_LAT, 
-      LONDON_LON) / 1000;
-  printInt(distanceKmToLondon, gps.location.isValid(), 9);
-
-  double courseToLondon =
-    TinyGPSPlus::courseTo(
-      gps.location.lat(),
-      gps.location.lng(),
-      LONDON_LAT, 
-      LONDON_LON);
-
-  printFloat(courseToLondon, gps.location.isValid(), 7, 2);
-
-  const char *cardinalToLondon = TinyGPSPlus::cardinal(courseToLondon);
-
-  printStr(gps.location.isValid() ? cardinalToLondon : "*** ", 6);
-
-  printInt(gps.charsProcessed(), true, 6);
-  printInt(gps.sentencesWithFix(), true, 10);
-  printInt(gps.failedChecksum(), true, 9);
-  Serial.println();
-  
   smartDelay(1000);
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
     Serial.println(F("No GPS data received: check wiring"));
+    afficherMessage(display1, "ERR");
+    afficherMessage(display2, "ERR");
+    afficherMessage(display3, "ERR");
 }
 
-// This custom version of delay() ensures that the gps object
-// is being "fed".
-static void smartDelay(unsigned long ms)
-{
-  unsigned long start = millis();
-  do 
-  {
-    while (ss.available())
-      gps.encode(ss.read());
-  } while (millis() - start < ms);
-}
 
-static void printFloat(float val, bool valid, int len, int prec)
-{
-  if (!valid)
-  {
-    while (len-- > 1)
-      Serial.print('*');
-    Serial.print(' ');
-  }
-  else
-  {
-    Serial.print(val, prec);
-    int vi = abs((int)val);
-    int flen = prec + (val < 0.0 ? 2 : 1); // . and -
-    flen += vi >= 1000 ? 4 : vi >= 100 ? 3 : vi >= 10 ? 2 : 1;
-    for (int i=flen; i<len; ++i)
-      Serial.print(' ');
-  }
-  smartDelay(0);
-}
 
-static void printInt(unsigned long val, bool valid, int len)
-{
-  char sz[32] = "*****************";
-  if (valid)
-    sprintf(sz, "%ld", val);
-  sz[len] = 0;
-  for (int i=strlen(sz); i<len; ++i)
-    sz[i] = ' ';
-  if (len > 0) 
-    sz[len-1] = ' ';
-  Serial.print(sz);
-  smartDelay(0);
-}
 
-static void printDateTime(TinyGPSDate &d, TinyGPSTime &t)
-{
-  if (!d.isValid())
-  {
-    Serial.print(F("********** "));
-  }
-  else
-  {
-    char sz[32];
-    sprintf(sz, "%02d/%02d/%02d ", d.month(), d.day(), d.year());
-    Serial.print(sz);
-  }
-  
-  if (!t.isValid())
-  {
-    Serial.print(F("******** "));
-  }
-  else
-  {
-    char sz[32];
-    sprintf(sz, "%02d:%02d:%02d ", t.hour(), t.minute(), t.second());
-    Serial.print(sz);
-  }
 
-  printInt(d.age(), d.isValid(), 5);
-  smartDelay(0);
-}
 
-static void printStr(const char *str, int len)
-{
-  int slen = strlen(str);
-  for (int i=0; i<len; ++i)
-    Serial.print(i<slen ? str[i] : ' ');
-  smartDelay(0);
-}
+
+
+
+
+
+
+
+
+
+
+
