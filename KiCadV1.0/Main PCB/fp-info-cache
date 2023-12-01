@@ -1,4 +1,4 @@
-20944004765457625
+20944004921275049
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -87527,14 +87527,14 @@ varistor
 0
 2
 2
-thomas
-DIP-8-N7_W7.62mm
+thomas footprint
+NEO6M
 8-lead though-hole mounted DIP package, row spacing 7.62 mm (300 mils), missing pin 7
 THT DIP DIL PDIP 2.54mm 7.62mm 300mil
 0
 4
 4
-thomas
+thomas footprint
 TM1637
 8-lead though-hole mounted DIP package, row spacing 7.62 mm (300 mils), missing pin 7
 THT DIP DIL PDIP 2.54mm 7.62mm 300mil
