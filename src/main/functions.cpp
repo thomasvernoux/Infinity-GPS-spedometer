@@ -95,24 +95,25 @@ void afficherMessage(TM1637Display& display, const char *message) {
   display.setSegments(data);
 }
 
-void defilerMessage(TM1637Display& display, const char *message, int delayTime) {
-  int len = strlen(message);
-  for (int i = 0; i < len; i++) {
-    uint8_t data[] = {0, 0, 0, 0};
+void defilerMessage(TM1637Display& display, const __FlashStringHelper *message, int delayTime) {
+  PGM_P p = reinterpret_cast<PGM_P>(message); // Convert the __FlashStringHelper* to PGM_P
+  int len = strlen_P(p); // Get the length of the message using strlen_P()
+  
+  for (int i = 0; i < len; i++) { // Loop through each character of the message
+    uint8_t data[] = {0, 0, 0, 0}; // Initialize an array to hold the encoded characters
     
-    // Parcourez chaque caractère du message
+    // Loop through each digit of the display
     for (int j = 0; j < 4; j++) {
-      if (i + j < len) {
-        // Obtenez le code segment pour le caractère actuel
-        data[j] = display.encodeDigit(message[i + j]);
+      if (i + j < len) { // Check if the current character is within the length of the message
+        // Get the current character and convert it to a digit
+        char c = (char)pgm_read_byte_near(p + i + j);
+        data[j] = display.encodeDigit(c - '0'); // Encode the digit for display
       }
     }
     
-    // Affichez les données sur l'afficheur
-    display.setSegments(data);
+    display.setSegments(data); // Display the encoded digits on the display
     
-    // Attendez avant de passer au caractère suivant
-    delay(delayTime);
+    delay(delayTime); // Wait before moving to the next character
   }
 }
 

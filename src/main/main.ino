@@ -3,17 +3,19 @@
 #include "functions.h"
 
 
-#include <TimeLib.h>
+
 
 // Define the pins for the GPS module
-static const int RXPin = 4, TXPin = 3;
-static const uint32_t GPSBaud = 9600;
+const int RXPin = 4, TXPin = 3;
+const uint32_t GPSBaud = 9600;
 
 // Define the pins for the TM1637 display
 const int CLK = 5; 
 const int DIO1 = 6; 
 const int DIO2 = 7; 
 const int DIO3 = 8; 
+
+const int brightness = 7;
 
 // Create an instance of the TinyGPSPlus class
 TinyGPSPlus gps;
@@ -33,13 +35,13 @@ void setup()
   ss.begin(GPSBaud);
 
   // Initialize the display and set the brightness
-  display1.setBrightness(7); // Réglez la luminosité (0-7)
-  display2.setBrightness(7); // Réglez la luminosité (0-7)
-  display3.setBrightness(7); // Réglez la luminosité (0-7)
+  display1.setBrightness(brightness); // Réglez la luminosité (0-7)
+  display2.setBrightness(brightness); // Réglez la luminosité (0-7)
+  display3.setBrightness(brightness); // Réglez la luminosité (0-7)
 
   // Print a startup message
   Serial.println(F("Cruising the sea, With GPS you foresee"));
-  defilerMessage(display1, "Cruising the sea, With GPS you foresee", 5);
+  defilerMessage(display1, F("Cruising the sea, With GPS you foresee"), 5);
 
 
 }
@@ -122,11 +124,11 @@ void loop()
 
   smartDelay(1000);
 
-  if (millis() > 5000 && gps.charsProcessed() < 10)
+  if (millis() > 5000 && gps.charsProcessed() < 10){
     Serial.println(F("No GPS data received: check wiring"));
     afficherMessage(display1, "ERR");
     afficherMessage(display2, "ERR");
-    afficherMessage(display3, "ERR");
+    afficherMessage(display3, "ERR");}
 }
 
 
