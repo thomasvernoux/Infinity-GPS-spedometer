@@ -89,7 +89,7 @@ void loop()
   speedKnots_100 = 100 * speedKnots;
 
   // Display the speed on the second display
-  display2.showNumberDec(speedKnots_100, 0b11100000, 4, 0);
+  display2.showNumberDecEx(speedKnots_100, 0b11100000, true);
 
 
 
@@ -103,7 +103,7 @@ void loop()
   Serial.println(course);
 
   
-  display3.showNumberDec(course, true, 4, 0);
+  display3.showNumberDec(course, false, 4, 0);
 
 
 

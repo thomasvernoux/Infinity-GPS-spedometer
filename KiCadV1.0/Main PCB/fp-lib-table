@@ -1,3 +1,4 @@
 (fp_lib_table
-  (lib (name "thomas footprint")(type "KiCad")(uri "C:/Users/AJEVH/OneDrive - IBA Group/Documents/github/Infinity projet GPS V1.0/Infinity-GPS/KiCadV1.0/lib/lib thomas footprint/thomas.pretty")(options "")(descr ""))
+  (version 7)
+  (lib (name "thomas footprint")(type "KiCad")(uri "E:/MES_Documents/Codes/projet GPS infinity/KiCadV1.0/lib/lib thomas footprint/thomas.pretty")(options "")(descr ""))
 )
