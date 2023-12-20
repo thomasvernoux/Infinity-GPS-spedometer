@@ -40,8 +40,8 @@ void setup()
   display3.setBrightness(brightness); // Réglez la luminosité (0-7)
 
   // Print a startup message
-  //Serial.println(F("Cruising the sea, With GPS you foresee"));
-
+  Serial.println(F("Cruising the sea, With GPS you foresee"));
+  defilerMessage(display1, F("Cruising the sea, With GPS you foresee"), 5);
 
 
 }
@@ -70,10 +70,12 @@ void loop()
     hours = hours - 24;
   }
 
+  // Format the hours and minutes for a more attractive display
+  char timeStr[6];
+  sprintf(timeStr, "%02d:%02d", hours, minutes);
+
   // Display the time on the display
-  display1.showNumberDecEx((100*hours + minutes), 0b11100000, true);
-
-
+  display1.showNumberDecEx(atoi(timeStr), 0b11100000, true);
 
   /*
   Speed display -------------------------------------------------------------------
@@ -83,15 +85,19 @@ void loop()
   float speedKmph = gps.speed.kmph();
 
   // Convert the speed to knots
-  float speedKnots = speedKmph ;// 1.852; //   /!\ attention romu
+  float speedKnots = speedKmph / 1.852;
 
-  int speedKnots_100;
-  speedKnots_100 = 100 * speedKnots;
+  // Convert the speed to an integer for display
+  int intSpeed = (int)speedKnots;
+
+  // Get the decimal part of the speed
+  int decSpeed = (int)((speedKnots - intSpeed) * 10);
+
+  // Combine the integer and decimal parts for display
+  int displaySpeed = intSpeed * 10 + decSpeed;
 
   // Display the speed on the second display
-  display2.showNumberDec(speedKnots_100, 0b11100000, 4, 0);
-
-
+  display2.showNumberDec(displaySpeed, true, 4, 0);
 
   /*
   Curse display -------------------------------------------------------------------
@@ -100,10 +106,17 @@ void loop()
   // Get the current course
   float course = gps.course.deg();
 
-  Serial.println(course);
+  // Convert the course to an integer for display
+  int intCourse = (int)course;
 
-  
-  display3.showNumberDec(course, true, 4, 0);
+  // Get the decimal part of the course
+  int decCourse = (int)((course - intCourse) * 10);
+
+  // Combine the integer and decimal parts for display
+  int displayCourse = intCourse * 10 + decCourse;
+
+  // Display the course on the third display
+  display3.showNumberDec(displayCourse, true, 4, 0);
 
 
 
